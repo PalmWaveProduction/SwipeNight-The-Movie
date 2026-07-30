@@ -356,6 +356,22 @@
             margin: 0 auto;
         }
 
+
+        #story {
+            text-align: center;
+            padding-top: 40px;
+            padding-bottom: 40px;
+        }
+        .story-byline {
+            color: var(--neon-cyan);
+            font-size: clamp(0.75rem, 1.5vw, 0.95rem);
+            letter-spacing: 3px;
+            text-transform: uppercase;
+            margin: 0;
+            opacity: 0.95;
+            text-shadow: 0 0 12px rgba(5, 217, 232, 0.35);
+        }
+
         section h2 {
             font-family: 'Limelight', cursive;
             font-size: 2rem;
@@ -1127,6 +1143,7 @@
     <header>
         <div class="logo">PALM WAVE PRODUCTIONS</div>
         <nav>
+            <a href="#story">The Story</a>
             <a href="#about">The Project</a>
             <a href="#lookbook">Lookbook</a>
             <a href="#partners">Partnerships</a>
@@ -1140,6 +1157,10 @@
         <a href="#contact" class="btn">REQUEST PITCH DECK</a>
     </div>
 
+
+    <section id="story">
+        <p class="story-byline">An original story by Derick J. Crespo</p>
+    </section>
     <section id="about">
         <h2>The World</h2>
         <p style="color: var(--text-muted); margin-bottom: 30px; max-width: 700px;">
@@ -1161,6 +1182,7 @@
             </div>
         </div>
     </section>
+
 
     <section id="lookbook">
         <h2>Visual Lookbook</h2>
