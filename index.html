@@ -367,20 +367,26 @@
             font-size: clamp(0.75rem, 1.5vw, 0.95rem);
             letter-spacing: 3px;
             text-transform: uppercase;
-            margin: 0;
+            margin: 0 auto;
             opacity: 0.95;
+            text-align: center;
             text-shadow: 0 0 12px rgba(5, 217, 232, 0.35);
+        }
+
+        #story {
+            text-align: center;
         }
 
         section h2 {
             font-family: 'Limelight', cursive;
             font-size: 2rem;
-            margin-bottom: 40px;
-            border-left: 4px solid var(--neon-magenta);
-            padding-left: 15px;
+            margin-bottom: 24px;
+            border-left: none;
+            padding-left: 0;
             letter-spacing: 4px;
             text-transform: uppercase;
             color: var(--text-main);
+            text-align: center;
             text-shadow:
                 -1.5px 0 0 rgba(255, 0, 70, 0.45),
                  1.5px 0 0 rgba(0, 255, 255, 0.4),
@@ -388,6 +394,12 @@
                  0 0 14px rgba(5, 217, 232, 0.4),
                  0 0 28px rgba(5, 217, 232, 0.25),
                  0 0 40px rgba(255, 42, 109, 0.15);
+        }
+
+        section h2 + p {
+            text-align: center;
+            margin-left: auto;
+            margin-right: auto;
         }
 
         .grid {
@@ -1163,7 +1175,7 @@
     </section>
     <section id="about">
         <h2>The World</h2>
-        <p style="color: var(--text-muted); margin-bottom: 30px; max-width: 700px;">
+        <p style="color: var(--text-muted); margin-bottom: 30px; max-width: 700px; text-align: center; margin-left: auto; margin-right: auto;">
             <i>Swipe Night</i> is set in a cyber-noir world of technological decay — a neon-soaked technocratic surveillance state where tropical deco architecture glows under constant drone watch. 
             Every connection is transactional, every signal is tracked, and survival depends on staying one step ahead of the system.
         </p>
@@ -1186,7 +1198,7 @@
 
     <section id="lookbook">
         <h2>Visual Lookbook</h2>
-        <p style="color: var(--text-muted); margin-bottom: 30px; max-width: 700px;">
+        <p style="color: var(--text-muted); margin-bottom: 30px; max-width: 700px; text-align: center; margin-left: auto; margin-right: auto;">
             Atmospheric concept visuals showcasing the cyber-noir world-building of <i>Swipe Night</i>. 
             These frames capture the tone, lighting, and environment that define the film — blending neon-soaked tropical deco with underground data dens, rain-slick streets, and constant drone surveillance.
         </p>
@@ -1239,7 +1251,7 @@
 
     <section id="partners">
         <h2>Brand Integration & Partnerships</h2>
-        <p style="color: var(--text-muted); margin-bottom: 30px;">
+        <p style="color: var(--text-muted); margin-bottom: 30px; max-width: 700px; text-align: center; margin-left: auto; margin-right: auto;">
             We are offering select local businesses and brands high-visibility placement within the visual landscape of <i>Swipe Night</i>. 
             From neon-soaked city streets to intimate set pieces, your brand can live inside the world of the film in a way that feels organic, cinematic, and unforgettable.
         </p>
@@ -1259,7 +1271,7 @@
             </div>
         </div>
 
-        <p style="color: var(--text-muted); margin-top: 40px; margin-bottom: 20px; max-width: 700px;">
+        <p style="color: var(--text-muted); margin-top: 40px; margin-bottom: 20px; max-width: 700px; text-align: center; margin-left: auto; margin-right: auto;">
             Additional partnership categories are available, including tech products, vehicles, lifestyle accessories, and more. 
             Packages can be tailored to your budget and goals — from subtle product placement to featured brand moments.
         </p>
