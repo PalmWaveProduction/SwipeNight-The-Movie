@@ -1,0 +1,1369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Palm Wave Productions | Swipe Night</title>
+    <link rel="icon" type="image/x-icon" href="images/favicon.ico">
+    <link rel="icon" type="image/png" sizes="32x32" href="images/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="images/favicon-16x16.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="images/apple-touch-icon.png">
+    <link href="https://fonts.googleapis.com/css2?family=Limelight&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #08080a;
+            --card-bg: #121216;
+            --neon-magenta: #ff2a6d;
+            --neon-cyan: #05d9e8;
+            --text-main: #f1f1f1;
+            --text-muted: #8e90a6;
+            --border-glow: rgba(255, 42, 109, 0.3);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-main);
+            font-family: 'Courier New', Courier, monospace;
+            line-height: 1.6;
+            overflow-x: hidden;
+            position: relative;
+        }
+
+        /* Content only wobbles when a tracking band is over it (controlled by JS) */
+        header, section, footer {
+            transition: transform 0.06s linear;
+            will-change: transform;
+        }
+
+        /* Slight RGB / chromatic static noise (VHS-style colored grain) */
+        body::before {
+            content: "";
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9998;
+            opacity: 0.10;
+            background-image: 
+                /* main noise */
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.30' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E"),
+                /* red channel slightly offset */
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.30' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0.9 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E"),
+                /* cyan channel slightly offset the other way */
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.30' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='0 0 0 0 0  0 0.9 0 0 0  0 0 1 0 0  0 0 0 0.8 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+            background-size: 320px 320px, 320px 320px, 320px 320px;
+            background-position: 0 0, 2px 0, -2px 1px;
+            animation: static-move 0.28s steps(4) infinite;
+            mix-blend-mode: screen;
+        }
+
+        /* Moving grain – fixed opacity, larger shifts for more noticeable crawl (epilepsy-safer) */
+        @keyframes static-move {
+            0%   { background-position: 0 0, 2px 0, -2px 1px; }
+            25%  { background-position: -32px 22px, -30px 22px, -34px 23px; }
+            50%  { background-position: 28px -26px, 30px -26px, 26px -25px; }
+            75%  { background-position: -18px -30px, -16px -30px, -20px -29px; }
+            100% { background-position: 0 0, 2px 0, -2px 1px; }
+        }
+
+        /* VHS overlay: fine scrolling scanlines + thicker tracking bands that travel */
+        body::after {
+            content: "";
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            background-image: 
+                /* fine VHS scanlines that continuously scroll downward */
+                repeating-linear-gradient(
+                    128deg,
+                    transparent 0px,
+                    transparent 2px,
+                    rgba(0, 0, 0, 0.88) 2px,
+                    rgba(0, 0, 0, 0.88) 3px
+                ),
+                /* primary thicker dark tracking band – large period so it can travel */
+                repeating-linear-gradient(
+                    0deg,
+                    transparent 0px,
+                    transparent 180px,
+                    rgba(255, 255, 255, 0.04) 185px,
+                    rgba(0, 0, 0, 0.20) 195px,
+                    rgba(255, 255, 255, 0.03) 205px,
+                    transparent 210px,
+                    transparent 400px
+                ),
+                /* secondary thinner tracking band – different period */
+                repeating-linear-gradient(
+                    0deg,
+                    transparent 0px,
+                    transparent 280px,
+                    rgba(0, 0, 0, 0.15) 290px,
+                    rgba(255, 255, 255, 0.03) 300px,
+                    transparent 310px,
+                    transparent 520px
+                );
+            background-size: 100% 4px, 100% 400px, 100% 520px;
+            background-position: 0 0, 0 0, 0 0;
+            animation: vhs-scroll 5.5s linear infinite, vhs-wobble 0.4s steps(3) infinite;
+            mix-blend-mode: overlay;
+        }
+
+        /* Continuous downward-only scroll of fine scanlines + thicker dark bands */
+        @keyframes vhs-scroll {
+            0% {
+                background-position: 0 0, 0 0, 0 0;
+            }
+            100% {
+                background-position: 0 100%, 0 400px, 0 520px;
+            }
+        }
+
+        /* Subtle horizontal VHS wobble / jitter */
+        @keyframes vhs-wobble {
+            0%   { transform: translateX(0); }
+            20%  { transform: translateX(-2.5px); }
+            40%  { transform: translateX(1.8px); }
+            60%  { transform: translateX(-1.2px); }
+            80%  { transform: translateX(2px); }
+            100% { transform: translateX(0); }
+        }
+
+        /* HEADER */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 20px 40px;
+            border-bottom: 1px solid var(--border-glow);
+            background: rgba(8, 8, 10, 0.95);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(5px);
+        }
+
+        .logo {
+            font-weight: bold;
+            font-size: 1.1rem;
+            letter-spacing: 2px;
+            color: var(--neon-cyan);
+            text-shadow: 0 0 8px rgba(5, 217, 232, 0.4);
+        }
+
+        nav a {
+            color: var(--text-muted);
+            text-decoration: none;
+            margin-left: 25px;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: color 0.3s ease;
+        }
+
+        nav a:hover {
+            color: var(--neon-magenta);
+        }
+
+        /* HERO SECTION */
+        .hero {
+            min-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 60px 20px;
+            background: linear-gradient(rgba(8, 8, 10, 0.75), rgba(8, 8, 10, 0.95)), 
+                        radial-gradient(circle at center, rgba(255, 42, 109, 0.12) 0%, transparent 70%);
+        }
+
+        .hero h1 {
+            font-family: 'Limelight', cursive;
+            font-size: 3.8rem;
+            letter-spacing: 8px;
+            margin-bottom: 15px;
+            text-transform: uppercase;
+            position: relative;
+            display: inline-block;
+            animation: lightbulb-flicker 3.8s infinite;
+            /* Brighter neon glow + VHS RGB split */
+            text-shadow: 
+                -3px 0 0 rgba(255, 0, 70, 0.85),
+                 3px 0 0 rgba(0, 255, 255, 0.75),
+                 0 0 6px rgba(255, 255, 255, 0.9),
+                 0 0 14px rgba(255, 255, 255, 0.7),
+                 0 0 28px rgba(5, 217, 232, 0.95),
+                 0 0 50px rgba(5, 217, 232, 0.7),
+                 0 0 90px rgba(5, 217, 232, 0.45),
+                 0 0 120px rgba(255, 42, 109, 0.35);
+        }
+
+        .hero h1 span {
+            color: var(--neon-magenta);
+            text-shadow: 
+                -3px 0 0 rgba(255, 0, 70, 0.9),
+                 3px 0 0 rgba(0, 255, 255, 0.65),
+                 0 0 8px rgba(255, 255, 255, 0.85),
+                 0 0 16px rgba(255, 42, 109, 1),
+                 0 0 32px rgba(255, 42, 109, 0.9),
+                 0 0 60px rgba(255, 42, 109, 0.65),
+                 0 0 100px rgba(255, 42, 109, 0.4);
+        }
+
+        /* CRT scanlines overlay on the title */
+        .hero h1::after {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: -4%;
+            width: 108%;
+            height: 100%;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent 0px,
+                transparent 2px,
+                rgba(0, 0, 0, 0.18) 2px,
+                rgba(0, 0, 0, 0.18) 3px
+            );
+            pointer-events: none;
+            z-index: 1;
+            mix-blend-mode: multiply;
+            animation: scanline-move 7s linear infinite;
+        }
+
+        /* Lightbulb-style flicker – irregular dim + bright surges */
+        @keyframes lightbulb-flicker {
+            0%, 100% {
+                opacity: 1;
+                filter: brightness(1.15) drop-shadow(0 0 12px rgba(5, 217, 232, 0.6));
+            }
+            4% {
+                opacity: 0.55;
+                filter: brightness(0.45);
+            }
+            5% {
+                opacity: 1;
+                filter: brightness(1.4) drop-shadow(0 0 20px rgba(5, 217, 232, 0.9));
+            }
+            6% {
+                opacity: 0.7;
+                filter: brightness(0.6);
+            }
+            7% {
+                opacity: 1;
+                filter: brightness(1.2);
+            }
+            28% {
+                opacity: 1;
+                filter: brightness(1.15);
+            }
+            29% {
+                opacity: 0.4;
+                filter: brightness(0.35);
+            }
+            30% {
+                opacity: 1;
+                filter: brightness(1.5) drop-shadow(0 0 25px rgba(255, 255, 255, 0.8));
+            }
+            31% {
+                opacity: 0.65;
+                filter: brightness(0.55);
+            }
+            32% {
+                opacity: 1;
+                filter: brightness(1.2);
+            }
+            58% {
+                opacity: 1;
+                filter: brightness(1.15);
+            }
+            59% {
+                opacity: 0.35;
+                filter: brightness(0.3);
+            }
+            60% {
+                opacity: 0.9;
+                filter: brightness(1.35);
+            }
+            61% {
+                opacity: 0.5;
+                filter: brightness(0.4);
+            }
+            62% {
+                opacity: 1;
+                filter: brightness(1.25) drop-shadow(0 0 18px rgba(5, 217, 232, 0.85));
+            }
+            78% {
+                opacity: 1;
+                filter: brightness(1.15);
+            }
+            79% {
+                opacity: 0.6;
+                filter: brightness(0.5);
+            }
+            80% {
+                opacity: 1;
+                filter: brightness(1.3);
+            }
+        }
+
+        @keyframes scanline-move {
+            0% { background-position: 0 0; }
+            100% { background-position: 0 40px; }
+        }
+
+        .hero p {
+            max-width: 700px;
+            font-size: 1.1rem;
+            color: var(--text-muted);
+            margin-bottom: 35px;
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 14px 32px;
+            background: transparent;
+            border: 2px solid var(--neon-cyan);
+            color: var(--neon-cyan);
+            text-decoration: none;
+            font-weight: bold;
+            letter-spacing: 2px;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 12px rgba(5, 217, 232, 0.2);
+            cursor: pointer;
+        }
+
+        .btn:hover {
+            background: var(--neon-cyan);
+            color: var(--bg-color);
+            box-shadow: 0 0 25px rgba(5, 217, 232, 0.7);
+        }
+
+        /* SECTIONS */
+        section {
+            padding: 80px 20px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        section h2 {
+            font-family: 'Limelight', cursive;
+            font-size: 2rem;
+            margin-bottom: 40px;
+            border-left: 4px solid var(--neon-magenta);
+            padding-left: 15px;
+            letter-spacing: 4px;
+            text-transform: uppercase;
+            color: var(--text-main);
+            text-shadow:
+                -1.5px 0 0 rgba(255, 0, 70, 0.45),
+                 1.5px 0 0 rgba(0, 255, 255, 0.4),
+                 0 0 6px rgba(255, 255, 255, 0.35),
+                 0 0 14px rgba(5, 217, 232, 0.4),
+                 0 0 28px rgba(5, 217, 232, 0.25),
+                 0 0 40px rgba(255, 42, 109, 0.15);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        .card {
+            background: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 30px;
+            transition: transform 0.3s ease, border-color 0.3s ease, filter 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Heavy static rain overlay on card hover */
+        .card::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 2;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            background-size: 180px 180px;
+            mix-blend-mode: screen;
+        }
+
+        .card:hover {
+            border-color: var(--neon-magenta);
+            animation: heavy-screen-glitch 0.55s steps(2) 1;
+            filter: brightness(1.25);
+            box-shadow:
+                0 0 20px rgba(5, 217, 232, 0.35),
+                -3px 0 0 rgba(255, 0, 70, 0.5),
+                 3px 0 0 rgba(0, 255, 255, 0.45);
+        }
+
+        .card:hover::after {
+            animation: static-rain-burst 0.55s steps(4) 1;
+        }
+
+        .card h3 {
+            color: var(--neon-cyan);
+            margin-bottom: 12px;
+            font-size: 1.2rem;
+        }
+
+        .card p {
+            color: var(--text-muted);
+            font-size: 0.95rem;
+        }
+
+        /* LOOKBOOK GALLERY */
+        .gallery-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+        }
+
+        .gallery-card {
+            background: var(--card-bg);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            overflow: hidden;
+            transition: border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+        }
+
+        .gallery-card::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 3;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            background-size: 160px 160px;
+            mix-blend-mode: screen;
+        }
+
+        .gallery-card:hover {
+            border-color: var(--neon-magenta);
+            animation: heavy-screen-glitch 0.55s steps(2) 1;
+            box-shadow:
+                0 0 20px rgba(5, 217, 232, 0.35),
+                -3px 0 0 rgba(255, 0, 70, 0.5),
+                 3px 0 0 rgba(0, 255, 255, 0.45);
+        }
+
+        .gallery-card:hover::after {
+            animation: static-rain-burst 0.55s steps(4) 1;
+        }
+
+        .gallery-card img {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            display: block;
+            filter: brightness(0.85);
+            transition: filter 0.4s ease;
+        }
+
+        .gallery-card:hover img {
+            filter: brightness(1.3) contrast(1.1);
+            animation: heavy-img-glitch 0.55s steps(2) 1;
+        }
+
+        /* Heavy VHS / screen glitch on hover */
+        @keyframes heavy-screen-glitch {
+            0% {
+                transform: translate(0, 0) skewX(0);
+                filter: brightness(1) contrast(1) hue-rotate(0deg);
+                opacity: 1;
+            }
+            10% {
+                transform: translate(-6px, 2px) skewX(-2deg);
+                filter: brightness(1.6) contrast(1.4) hue-rotate(-15deg);
+                opacity: 0.85;
+            }
+            20% {
+                transform: translate(5px, -3px) skewX(1.5deg);
+                filter: brightness(0.55) contrast(1.6) hue-rotate(20deg);
+                opacity: 1;
+            }
+            30% {
+                transform: translate(-4px, 1px) skewX(-1deg);
+                filter: brightness(1.8) contrast(0.8) hue-rotate(-10deg);
+                opacity: 0.7;
+            }
+            40% {
+                transform: translate(7px, -2px) skewX(2deg);
+                filter: brightness(0.7) contrast(1.5) hue-rotate(25deg);
+                opacity: 1;
+            }
+            55% {
+                transform: translate(-3px, 3px) skewX(-1.5deg);
+                filter: brightness(1.4) contrast(1.2) hue-rotate(-5deg);
+                opacity: 0.9;
+            }
+            70% {
+                transform: translate(2px, -1px) skewX(0.5deg);
+                filter: brightness(1.1) contrast(1.1);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(0, -5px) skewX(0);
+                filter: brightness(1.25) contrast(1);
+                opacity: 1;
+            }
+        }
+
+        @keyframes heavy-img-glitch {
+            0% {
+                filter: brightness(0.85) contrast(1) hue-rotate(0deg);
+                transform: translate(0, 0) scale(1);
+            }
+            12% {
+                filter: brightness(1.7) contrast(1.5) hue-rotate(-20deg) saturate(1.8);
+                transform: translate(-5px, 1px) scale(1.02);
+            }
+            25% {
+                filter: brightness(0.4) contrast(1.8) hue-rotate(30deg) saturate(0.6);
+                transform: translate(6px, -2px) scale(0.98);
+            }
+            40% {
+                filter: brightness(1.9) contrast(0.7) hue-rotate(-15deg) saturate(2);
+                transform: translate(-4px, 2px) scale(1.03);
+            }
+            55% {
+                filter: brightness(0.65) contrast(1.4) hue-rotate(15deg);
+                transform: translate(3px, -1px) scale(0.99);
+            }
+            75% {
+                filter: brightness(1.35) contrast(1.15) hue-rotate(-5deg);
+                transform: translate(-1px, 0) scale(1.01);
+            }
+            100% {
+                filter: brightness(1.3) contrast(1.1) hue-rotate(0deg);
+                transform: translate(0, 0) scale(1);
+            }
+        }
+
+        /* Heavy static rain burst on card hover */
+        @keyframes static-rain-burst {
+            0% {
+                opacity: 0;
+                background-position: 0 0;
+            }
+            10% {
+                opacity: 0.85;
+                background-position: -40px 30px;
+            }
+            25% {
+                opacity: 0.95;
+                background-position: 60px -50px;
+            }
+            40% {
+                opacity: 0.7;
+                background-position: -80px 20px;
+            }
+            55% {
+                opacity: 0.9;
+                background-position: 30px 70px;
+            }
+            70% {
+                opacity: 0.5;
+                background-position: -20px -40px;
+            }
+            85% {
+                opacity: 0.25;
+                background-position: 50px 10px;
+            }
+            100% {
+                opacity: 0;
+                background-position: 0 0;
+            }
+        }
+
+        @keyframes screen-static-rain {
+            0% { background-position: 0 0; }
+            25% { background-position: -35px 28px; }
+            50% { background-position: 42px -22px; }
+            75% { background-position: -18px 48px; }
+            100% { background-position: 0 0; }
+        }
+
+
+        .gallery-caption {
+            padding: 18px;
+            border-top: 1px solid rgba(255, 42, 109, 0.2);
+        }
+
+        .gallery-caption h4 {
+            color: var(--neon-cyan);
+            font-size: 1.05rem;
+            margin-bottom: 5px;
+        }
+
+        .gallery-caption p {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        /* CONTACT FORM */
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            background: var(--card-bg);
+            padding: 40px;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        input, textarea, select {
+            width: 100%;
+            padding: 14px;
+            background: #08080a;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: var(--text-main);
+            font-family: inherit;
+            font-size: 0.95rem;
+        }
+
+        input:focus, textarea:focus, select:focus {
+            outline: none;
+            border-color: var(--neon-cyan);
+            box-shadow: 0 0 8px rgba(5, 217, 232, 0.3);
+        }
+
+        footer {
+            text-align: center;
+            padding: 50px 20px 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        .footer-logo {
+            max-width: 360px;
+            width: 90%;
+            height: auto;
+            display: block;
+            margin: 0 auto 24px auto;
+            filter: drop-shadow(0 0 12px rgba(5, 217, 232, 0.35));
+        }
+
+        @media (max-width: 768px) {
+            header { flex-direction: column; gap: 15px; }
+            nav a { margin: 0 10px; }
+            .hero h1 { 
+                font-size: 2.4rem; 
+                letter-spacing: 4px;
+            }
+            .footer-logo { max-width: 280px; }
+        }
+
+        /* ENTER / AUDIO GATE */
+        #enter-gate {
+            position: fixed;
+            inset: 0;
+            z-index: 100000;
+            background: #050508;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 0;
+            cursor: pointer;
+            transition: opacity 0.6s ease, visibility 0.6s ease;
+            overflow: hidden;
+            padding-top: 24px;
+        }
+
+        #enter-gate.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+        }
+
+        /* Geometric corner accents */
+        #enter-gate .deco-corner {
+            position: absolute;
+            width: 40px;
+            height: 40px;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        #enter-gate .deco-corner.tl {
+            top: 12%;
+            left: 18%;
+            border-top: 2px solid rgba(5, 217, 232, 0.35);
+            border-left: 2px solid rgba(5, 217, 232, 0.35);
+        }
+
+        #enter-gate .deco-corner.tr {
+            top: 12%;
+            right: 18%;
+            border-top: 2px solid rgba(255, 42, 109, 0.35);
+            border-right: 2px solid rgba(255, 42, 109, 0.35);
+        }
+
+        #enter-gate .deco-corner.bl {
+            bottom: 22%;
+            left: 18%;
+            border-bottom: 2px solid rgba(255, 42, 109, 0.3);
+            border-left: 2px solid rgba(255, 42, 109, 0.3);
+        }
+
+        #enter-gate .deco-corner.br {
+            bottom: 22%;
+            right: 18%;
+            border-bottom: 2px solid rgba(5, 217, 232, 0.3);
+            border-right: 2px solid rgba(5, 217, 232, 0.3);
+        }
+
+        /* Vertical deco lines */
+        #enter-gate .deco-line {
+            position: absolute;
+            top: 18%;
+            bottom: 28%;
+            width: 1px;
+            pointer-events: none;
+            z-index: 1;
+            background: linear-gradient(
+                to bottom,
+                transparent,
+                rgba(5, 217, 232, 0.25) 20%,
+                rgba(255, 42, 109, 0.2) 50%,
+                rgba(5, 217, 232, 0.25) 80%,
+                transparent
+            );
+        }
+
+        #enter-gate .deco-line.left { left: 22%; }
+        #enter-gate .deco-line.right { right: 22%; }
+
+        /* Full-screen static rain layer (same style as card hover) */
+        #enter-gate::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0;
+            z-index: 2;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            background-size: 160px 160px;
+            mix-blend-mode: screen;
+        }
+
+        #enter-gate.glitching {
+            animation: heavy-screen-glitch 0.7s steps(2) 1;
+            background: #000 !important;
+        }
+
+        /* Hide TV + deco during transition — pure black with glitch only */
+        #enter-gate.glitching .retro-setup,
+        #enter-gate.glitching .deco-backdrop,
+        #enter-gate.glitching .screen-overlay {
+            opacity: 0 !important;
+            visibility: hidden !important;
+            pointer-events: none !important;
+            transition: none !important;
+        }
+
+        #enter-gate.glitching::after {
+            z-index: 100;
+            mix-blend-mode: normal; /* screen blend vanishes on pure black */
+            background-color: transparent;
+            animation: static-rain-burst 0.7s steps(4) 1;
+        }
+
+        #enter-gate.glitching .gate-label,
+        #enter-gate.glitching .gate-sub {
+            animation: none;
+            opacity: 0;
+        }
+
+        /* Classic Art Deco pattern – embedded so it always loads */
+        #enter-gate .deco-backdrop {
+            position: absolute;
+            z-index: 1;
+            inset: 0;
+            pointer-events: none;
+            background-image: url("images/startscreen-background.jpg");
+            background-size: cover;
+            background-position: center;
+            background-repeat: no-repeat;
+            opacity: 1;
+            filter: none;
+        }
+
+        /* Soft shadow cast from the TV onto the backdrop */
+        #enter-gate .deco-backdrop::before {
+            content: "";
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -48%);
+            width: 620px;
+            height: 680px;
+            border-radius: 28px;
+            background: radial-gradient(
+                ellipse at center,
+                rgba(0, 0, 0, 0.55) 0%,
+                rgba(0, 0, 0, 0.35) 40%,
+                transparent 72%
+            );
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        #enter-gate .deco-backdrop::after {
+            content: none;
+        }
+
+        /* Horizontal deco lines (soft accent over pattern) */
+        #enter-gate .deco-lines {
+            position: absolute;
+            z-index: 1;
+            width: 100%;
+            max-width: 640px;
+            height: 100%;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            pointer-events: none;
+            opacity: 0.45;
+        }
+
+        #enter-gate .deco-lines span {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            height: 1px;
+            background: linear-gradient(
+                to right,
+                transparent,
+                rgba(5, 217, 232, 0.25),
+                rgba(255, 42, 109, 0.2),
+                rgba(5, 217, 232, 0.25),
+                transparent
+            );
+        }
+
+        #enter-gate .deco-lines span:nth-child(1) { top: 12%; width: 70%; opacity: 0.5; }
+        #enter-gate .deco-lines span:nth-child(2) { top: 16%; width: 55%; opacity: 0.35; }
+        #enter-gate .deco-lines span:nth-child(3) { bottom: 22%; width: 60%; opacity: 0.4; }
+        #enter-gate .deco-lines span:nth-child(4) { bottom: 18%; width: 45%; opacity: 0.3; }
+
+        /* Vertical side chevrons */
+        #enter-gate .deco-side {
+            position: absolute;
+            z-index: 1;
+            top: 50%;
+            width: 24px;
+            height: 180px;
+            transform: translateY(-60%);
+            pointer-events: none;
+            border-style: solid;
+            border-color: transparent;
+        }
+
+        #enter-gate .deco-side.left {
+            left: calc(50% - 280px);
+            border-width: 12px 0 12px 10px;
+            border-left-color: rgba(180, 190, 200, 0.35);
+            box-shadow: -4px 0 12px rgba(180, 190, 200, 0.12);
+        }
+
+        #enter-gate .deco-side.right {
+            right: calc(50% - 280px);
+            border-width: 12px 10px 12px 0;
+            border-right-color: rgba(180, 190, 200, 0.35);
+            box-shadow: 4px 0 12px rgba(180, 190, 200, 0.12);
+        }
+
+        /* Realistic retro Philco CRT setup (photo) */
+        #enter-gate .retro-setup {
+            position: relative;
+            z-index: 3;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            filter:
+                drop-shadow(0 28px 80px rgba(0, 0, 0, 0.95))
+                drop-shadow(0 50px 120px rgba(0, 0, 0, 0.75))
+                drop-shadow(0 12px 40px rgba(0, 0, 0, 0.8));
+        }
+
+        #enter-gate .retro-tv-img {
+            width: min(780px, 98vw);
+            height: auto;
+            display: block;
+            border-radius: 0;
+            border: none;
+            box-shadow: none;
+            outline: none;
+        }
+
+        /* Text + moving static layered over the CRT glass */
+        #enter-gate .screen-overlay {
+            position: absolute;
+            /* CRT glass — measured center of screen region */
+            top: 17.8%;
+            left: 36.4%;
+            width: 27.2%;
+            height: 22.7%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 5px;
+            pointer-events: none;
+            text-align: center;
+            border-radius: 20% / 28%;
+            overflow: hidden;
+        }
+
+        /* Animated static rain on the glass */
+        #enter-gate .screen-overlay::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+            background-size: 100px 100px;
+            background-position: center center;
+            opacity: 0.32;
+            mix-blend-mode: screen;
+            animation: screen-static-rain 0.35s steps(4) infinite;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        #enter-gate .gate-label {
+            font-family: 'Limelight', cursive;
+            font-size: clamp(0.55rem, 1.8vw, 0.95rem);
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--neon-cyan);
+            text-shadow:
+                0 0 10px rgba(5, 217, 232, 0.95),
+                0 0 28px rgba(5, 217, 232, 0.55),
+                0 0 4px rgba(0, 0, 0, 0.9);
+            animation: lightbulb-flicker 3.8s infinite;
+            margin: 0;
+            position: relative;
+            z-index: 4;
+            line-height: 1.2;
+            max-width: 100%;
+            word-spacing: 0.05em;
+        }
+
+        #enter-gate .gate-sub {
+            font-size: clamp(0.45rem, 1.4vw, 0.72rem);
+            color: rgba(5, 217, 232, 0.92);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            text-shadow:
+                0 0 8px rgba(5, 217, 232, 0.55),
+                0 0 3px rgba(0, 0, 0, 0.85);
+            margin: 0;
+            position: relative;
+            z-index: 4;
+            max-width: 100%;
+        }
+
+        /* Mobile: keep start-screen text inside the CRT glass */
+        @media (max-width: 600px) {
+            #enter-gate .retro-tv-img {
+                width: min(100vw, 100%);
+            }
+            #enter-gate .screen-overlay {
+                top: 16.5%;
+                left: 34%;
+                width: 32%;
+                height: 24%;
+                gap: 3px;
+                padding: 0 2%;
+            }
+            #enter-gate .gate-label {
+                font-size: clamp(0.42rem, 2.8vw, 0.7rem);
+                letter-spacing: 0.06em;
+                line-height: 1.15;
+            }
+            #enter-gate .gate-sub {
+                font-size: clamp(0.36rem, 2.2vw, 0.55rem);
+                letter-spacing: 0.08em;
+            }
+        }
+
+        @media (max-width: 400px) {
+            #enter-gate .screen-overlay {
+                top: 16%;
+                left: 33%;
+                width: 34%;
+                height: 25%;
+            }
+            #enter-gate .gate-label {
+                font-size: 0.48rem;
+                letter-spacing: 0.04em;
+            }
+            #enter-gate .gate-sub {
+                font-size: 0.38rem;
+                letter-spacing: 0.06em;
+            }
+        }
+
+        #audio-toggle {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            z-index: 10000;
+            background: rgba(8, 8, 10, 0.85);
+            border: 1px solid rgba(5, 217, 232, 0.4);
+            color: var(--neon-cyan);
+            font-family: inherit;
+            font-size: 0.75rem;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            padding: 10px 14px;
+            cursor: pointer;
+            backdrop-filter: blur(4px);
+        }
+
+        #audio-toggle:hover {
+            border-color: var(--neon-magenta);
+            color: var(--neon-magenta);
+            box-shadow: 0 0 12px rgba(255, 42, 109, 0.3);
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Click-to-enter gate so audio can start with sound -->
+    <div id="enter-gate" tabindex="0" role="button" aria-label="Start Transmission — Click to enter">
+        <div class="deco-backdrop"></div>
+        <div class="retro-setup">
+            <img src="images/retro-tv.png" alt="Retro Philco CRT" class="retro-tv-img">
+            <div class="screen-overlay">
+                <div class="gate-label">Start<br>Transmission</div>
+                <div class="gate-sub">Click to enter</div>
+            </div>
+        </div>
+    </div>
+
+    <audio id="bg-audio" loop preload="auto">
+        <source src="audio/rain-over-seven.mp3" type="audio/mpeg">
+    </audio>
+
+    <button id="audio-toggle" type="button" aria-label="Toggle audio">Audio</button>
+
+    <header>
+        <div class="logo">PALM WAVE PRODUCTIONS</div>
+        <nav>
+            <a href="#about">The Project</a>
+            <a href="#lookbook">Lookbook</a>
+            <a href="#partners">Partnerships</a>
+            <a href="#contact">Contact</a>
+        </nav>
+    </header>
+
+    <div class="hero">
+        <h1>Swipe <span>Night</span></h1>
+        <p>A cyber-noir world in technological decay. A broke and desperate tech developer faking a lifestyle using women on dating apps to get Wi-Fi in order to complete the perfect artificial intelligence. He's trapped in a technocratic surveillance state — can he finish before he's caught, or will he become the target of what he seeks to destroy?</p>
+        <a href="#contact" class="btn">REQUEST PITCH DECK</a>
+    </div>
+
+    <section id="about">
+        <h2>The World</h2>
+        <p style="color: var(--text-muted); margin-bottom: 30px; max-width: 700px;">
+            <i>Swipe Night</i> is set in a cyber-noir world of technological decay — a neon-soaked technocratic surveillance state where tropical deco architecture glows under constant drone watch. 
+            Every connection is transactional, every signal is tracked, and survival depends on staying one step ahead of the system.
+        </p>
+        <div class="grid">
+            <div class="card">
+                <h3>Cyber-Noir Visuals</h3>
+                <p>Classic 1940s moody shadows and high-contrast framing collide with neon tropical deco and a suffocating dystopian landscape. Palm-lined streets glow under surveillance drones while decaying storefronts and holographic ads define a world that feels both timeless and uncomfortably current.</p>
+            </div>
+            <div class="card">
+                <h3>High-Concept Thriller</h3>
+                <p>A broke tech developer fakes a lifestyle on dating apps to steal Wi-Fi and finish the perfect AI — all while trapped in a technocratic surveillance state. Algorithmic isolation, data vulnerability, and a race against being caught drive a lean, tense narrative built for maximum impact.</p>
+            </div>
+            <div class="card">
+                <h3>Lean Production</h3>
+                <p>Engineered from page to screen for maximum visual impact, using strategic real-world locations and stylized world-building. Designed to look expensive while remaining efficient and achievable — high concept, controlled scope, and a signature neon-tropical aesthetic.</p>
+            </div>
+        </div>
+    </section>
+
+    <section id="lookbook">
+        <h2>Visual Lookbook</h2>
+        <p style="color: var(--text-muted); margin-bottom: 30px; max-width: 700px;">
+            Atmospheric concept visuals showcasing the cyber-noir world-building of <i>Swipe Night</i>. 
+            These frames capture the tone, lighting, and environment that define the film — blending neon-soaked tropical deco with underground data dens, rain-slick streets, and constant drone surveillance.
+        </p>
+        
+        <div class="gallery-grid">
+            <div class="gallery-card">
+                <img src="images/zion7.jpg" alt="Zion 7 Internet Cafe">
+                <div class="gallery-caption">
+                    <h4>Zion 7 Internet Cafe</h4>
+                    <p>24-hour data den under constant surveillance — system breach in progress.</p>
+                </div>
+            </div>
+            <div class="gallery-card">
+                <img src="images/studio.jpg" alt="Broadcast Studio">
+                <div class="gallery-caption">
+                    <h4>Broadcast Studio</h4>
+                    <p>Smoke, surveillance, and the interview that could change everything.</p>
+                </div>
+            </div>
+            <div class="gallery-card">
+                <img src="images/apartment.jpg" alt="Apartment Hideout">
+                <div class="gallery-caption">
+                    <h4>Apartment Hideout</h4>
+                    <p>CRT terminals, Kroton Tea, and patrol bots outside the rain-soaked window.</p>
+                </div>
+            </div>
+            <div class="gallery-card">
+                <img src="images/canal.jpg" alt="Canal District">
+                <div class="gallery-caption">
+                    <h4>Canal District</h4>
+                    <p>Palm Wave / Cybernetics skyline under drone patrol — your data, our control.</p>
+                </div>
+            </div>
+            <div class="gallery-card">
+                <img src="images/drones.jpg" alt="Neon Corridor Drones">
+                <div class="gallery-caption">
+                    <h4>Neon Corridor</h4>
+                    <p>Zion 7 open 24 hours. Palm trees, rain, and surveillance drones on the hunt.</p>
+                </div>
+            </div>
+            <div class="gallery-card">
+                <img src="images/lix49.jpg" alt="LIX 49 Liquors">
+                <div class="gallery-caption">
+                    <h4>LIX 49 Liquors</h4>
+                    <p>Tropical deco storefront drowning in cameras — D.I.C. never sleeps.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section id="partners">
+        <h2>Brand Integration & Partnerships</h2>
+        <p style="color: var(--text-muted); margin-bottom: 30px;">
+            We are offering select local businesses and brands high-visibility placement within the visual landscape of <i>Swipe Night</i>. 
+            From neon-soaked city streets to intimate set pieces, your brand can live inside the world of the film in a way that feels organic, cinematic, and unforgettable.
+        </p>
+        
+        <div class="grid">
+            <div class="card">
+                <h3>Real Estate & Commercial</h3>
+                <p>In-universe holographic real estate banners, digital billboards, and property placement featured prominently in key outdoor city sequences. Ideal for developers, brokerages, and commercial spaces looking for elevated exposure in a cyber-noir environment.</p>
+            </div>
+            <div class="card">
+                <h3>Apparel & Wardrobe</h3>
+                <p>Tailored menswear, custom street style, and high-fashion wardrobe integrations for lead characters throughout the film. Perfect for designers, boutiques, and lifestyle brands that want their pieces worn on screen in high-impact moments.</p>
+            </div>
+            <div class="card">
+                <h3>Food, Tea & Beverages</h3>
+                <p>Custom packaging and branded product placement inside pivotal set locations, including the Zion 7 cafe and local storefronts. A natural fit for cafes, tea brands, craft beverages, and local food concepts.</p>
+            </div>
+        </div>
+
+        <p style="color: var(--text-muted); margin-top: 40px; margin-bottom: 20px; max-width: 700px;">
+            Additional partnership categories are available, including tech products, vehicles, lifestyle accessories, and more. 
+            Packages can be tailored to your budget and goals — from subtle product placement to featured brand moments.
+        </p>
+        <a href="#contact" class="btn">CONTACT US TO FIND OUT MORE</a>
+    </section>
+
+    <section id="contact">
+        <h2>Inquiries & Collaborations</h2>
+        <form action="https://formspree.io/f/xeeynder" method="POST">
+            <div>
+                <label style="display:block; margin-bottom: 8px; color: var(--neon-cyan);">NAME / ORGANIZATION</label>
+                <input type="text" name="name" required placeholder="Enter your name or business">
+            </div>
+            <div>
+                <label style="display:block; margin-bottom: 8px; color: var(--neon-cyan);">EMAIL</label>
+                <input type="email" name="email" required placeholder="name@domain.com">
+            </div>
+            <div>
+                <label style="display:block; margin-bottom: 8px; color: var(--neon-cyan);">INQUIRY TYPE</label>
+                <select name="type">
+                    <option value="investor">Investor / Executive Producer</option>
+                    <option value="partnership">Brand / Business Partnership</option>
+                    <option value="press">Press / Media Request</option>
+                    <option value="general">General Inquiry</option>
+                </select>
+            </div>
+            <div>
+                <label style="display:block; margin-bottom: 8px; color: var(--neon-cyan);">MESSAGE</label>
+                <textarea name="message" rows="5" required placeholder="Tell us about your project or partnership idea..."></textarea>
+            </div>
+            <button type="submit" class="btn" style="width: 100%;">SEND TRANSMISSION</button>
+        </form>
+    </section>
+
+    <footer>
+        <img src="images/palmwave-logo.jpg" alt="Palm Wave Productions" class="footer-logo">
+        <p>&copy; 2026 Palm Wave Productions. All rights reserved.</p>
+    </footer>
+
+
+
+
+
+    <script>
+    // Content wobbles ONLY when a tracking band is physically over that element.
+    // Timing is calculated from each element's position and the band animation cycle.
+    (function () {
+        const targets = Array.from(document.querySelectorAll('header, section, footer'));
+        const duration = 7000; // matches CSS: animation: vhs-scroll 7s ...
+
+        // Band definitions matching the CSS repeating-linear-gradients:
+        // Primary band period = 400px, band thickness ~25px around the dark core
+        // Secondary band period = 520px
+        // Both start at background-position Y = 0 and move downward (positive Y)
+        const bands = [
+            { period: 400, thickness: 40 },  // primary thick band
+            { period: 520, thickness: 30 }   // secondary thinner band
+        ];
+
+        function bandYs(progress) {
+            // progress 0→1 maps to background-position 0 → period (downward scroll)
+            return bands.map(b => {
+                const y = (progress * b.period) % b.period;
+                return { y, thickness: b.thickness, period: b.period };
+            });
+        }
+
+        function elementOverlapsBand(el, band) {
+            const rect = el.getBoundingClientRect();
+            // Band is a horizontal strip that repeats every `period` pixels down the viewport
+            // We check every repeated instance that could intersect the element
+            const viewH = window.innerHeight;
+            // The visible band positions in the viewport
+            // Because background-position moves the pattern, the first band top is at -y + k*period
+            // Simplified: for a band whose "core" is at position `y` within its period,
+            // the visible cores in the viewport are at: y, y-period, y+period, etc.
+            const cores = [];
+            for (let k = -2; k <= Math.ceil(viewH / band.period) + 2; k++) {
+                cores.push(band.y + k * band.period);
+            }
+            // Element's vertical range in viewport coordinates
+            const elTop = rect.top;
+            const elBottom = rect.bottom;
+            const half = band.thickness / 2;
+            return cores.some(coreY => {
+                const bandTop = coreY - half;
+                const bandBottom = coreY + half;
+                return bandBottom > elTop && bandTop < elBottom;
+            });
+        }
+
+        function apply() {
+            const now = performance.now();
+            const progress = (now % duration) / duration;
+            const currentBands = bandYs(progress);
+
+            targets.forEach(el => {
+                const hit = currentBands.some(b => elementOverlapsBand(el, b));
+                if (hit) {
+                    const offset = (Math.random() * 4.8 - 2.4).toFixed(1);
+                    el.style.transform = 'translateX(' + offset + 'px)';
+                } else {
+                    el.style.transform = 'translateX(0)';
+                }
+            });
+        }
+
+        function tick() {
+            apply();
+            requestAnimationFrame(tick);
+        }
+        requestAnimationFrame(tick);
+
+        // Recalculate on resize / scroll so positions stay accurate
+        window.addEventListener('resize', apply, { passive: true });
+        window.addEventListener('scroll', apply, { passive: true });
+    })();
+    </script>
+
+
+    <script>
+    // Background audio: starts on first click (enter gate)
+    (function () {
+        const gate = document.getElementById('enter-gate');
+        const audio = document.getElementById('bg-audio');
+        const toggle = document.getElementById('audio-toggle');
+        let started = false;
+
+        audio.volume = 0.85;
+        audio.muted = false;
+
+        function playAudio() {
+            audio.muted = false;
+            audio.volume = 0.85;
+            // Ensure source is loaded, then play
+            var p = audio.play();
+            if (p && typeof p.then === 'function') {
+                p.then(function () {
+                    toggle.textContent = 'Mute';
+                }).catch(function (err) {
+                    // Retry once after a short load
+                    audio.load();
+                    setTimeout(function () {
+                        audio.play().catch(function () {});
+                    }, 150);
+                });
+            }
+        }
+
+        function startTransmission() {
+            if (started) return;
+            started = true;
+            playAudio();
+            toggle.textContent = 'Mute';
+
+            // Full-screen heavy glitch + static rain (same as card hover), then reveal page
+            gate.classList.add('glitching');
+            setTimeout(function () {
+                gate.classList.add('hidden');
+                gate.classList.remove('glitching');
+            }, 700);
+        }
+
+        gate.addEventListener('click', startTransmission);
+        gate.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter' || e.key === ' ') startTransmission();
+        });
+
+        toggle.addEventListener('click', function (e) {
+            e.stopPropagation();
+            if (!started) {
+                startTransmission();
+                return;
+            }
+            if (audio.paused) {
+                playAudio();
+                toggle.textContent = 'Mute';
+            } else {
+                audio.pause();
+                toggle.textContent = 'Audio';
+            }
+        });
+    })();
+    </script>
+
+</body>
+</html>
