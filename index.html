@@ -772,7 +772,8 @@
         /* Hide TV + deco during transition — pure black with glitch only */
         #enter-gate.glitching .retro-setup,
         #enter-gate.glitching .deco-backdrop,
-        #enter-gate.glitching .screen-overlay {
+        #enter-gate.glitching .screen-overlay,
+        #enter-gate.glitching .light-effect {
             opacity: 0 !important;
             visibility: hidden !important;
             pointer-events: none !important;
@@ -913,6 +914,20 @@
             box-shadow: none;
             outline: none;
         }
+        /* Light beams layered on top of the TV + desk */
+        /* Light rays over TV — no blend mode yet, plain overlay */
+        #enter-gate .light-effect {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            pointer-events: none;
+            z-index: 5;
+            mix-blend-mode: normal;
+            opacity: 1;
+        }
+
 
         /* Text + moving static layered over the CRT glass */
         #enter-gate .screen-overlay {
@@ -1057,6 +1072,7 @@
                 <div class="gate-label">Start<br>Transmission</div>
                 <div class="gate-sub">Click to enter</div>
             </div>
+            <img src="images/lighteffect.png" alt="" class="light-effect" aria-hidden="true">
         </div>
     </div>
 
