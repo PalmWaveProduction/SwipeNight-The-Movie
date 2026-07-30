@@ -930,6 +930,46 @@
             opacity: 0.9;
         }
 
+        /* Shadow starts mid-desk and fades down — lower desk sits in shadow */
+        #enter-gate .deco-backdrop {
+            -webkit-mask-image: linear-gradient(
+                to bottom,
+                #000 0%,
+                #000 48%,
+                rgba(0, 0, 0, 0.85) 58%,
+                rgba(0, 0, 0, 0.4) 70%,
+                transparent 85%
+            );
+            mask-image: linear-gradient(
+                to bottom,
+                #000 0%,
+                #000 48%,
+                rgba(0, 0, 0, 0.85) 58%,
+                rgba(0, 0, 0, 0.4) 70%,
+                transparent 85%
+            );
+        }
+        #enter-gate::before {
+            content: "";
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            /* taller so gradient reaches mid-desk */
+            height: 48%;
+            background: linear-gradient(
+                to bottom,
+                transparent 0%,
+                rgba(0, 0, 0, 0.15) 18%,
+                rgba(0, 0, 0, 0.4) 35%,
+                rgba(0, 0, 0, 0.7) 55%,
+                rgba(0, 0, 0, 0.9) 75%,
+                #000 100%
+            );
+            pointer-events: none;
+            z-index: 2;
+        }
+
 
         /* Text + moving static layered over the CRT glass */
         #enter-gate .screen-overlay {
@@ -998,7 +1038,7 @@
             max-width: 100%;
         }
 
-        /* Mobile: keep start-screen text inside the CRT glass */
+        /* Mobile: text fit + black below the desk */
         @media (max-width: 600px) {
             #enter-gate .retro-tv-img {
                 width: min(100vw, 100%);
